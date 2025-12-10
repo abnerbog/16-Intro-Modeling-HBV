@@ -1,8 +1,24 @@
 ---
-title: "16 - Modeling Intro"
+title: "Chapter 16: Modeling Intro"
+date: today
+github: https://github.com/VT-Hydroinformatics/16-Intro-Modeling-HBV
+author:
+  - name: JP Gannon
+    orcid: 0000-0002-4595-3214
+    github: jpgannon
+    url: https://jpgannon.github.io/
+    affiliation: 
+      - name: Virginia Tech
+        url: https://www.vt.edu/
 format:
   html: 
     self-contained: true
+  ipynb:
+      nb-frontmatter: true
+jupyter: 
+  kernel: ir
+execute: 
+  enabled: true
 ---
 
 # Intro to Modeling - Getting Started with HBV {#modelingintro}
@@ -59,7 +75,12 @@ HBV is a lumped conceptual model. We will use the diagram below and the
 HBV.R code to discuss how the model works and get an idea of what the
 parameters do.
 
-![HBV Model](images/HBV-schem-Shrestha-Solomantine-2008.png "HBV Model")
+::: {#fig-hbv-model .captioned-figure}
+<img src="./images/HBV-schem-Shrestha-Solomantine-2008.png" alt="HBV Model" width="1000">
+
+HBV Model
+:::
+
 This schematic was reproduced from: Durga Lal Shrestha & Dimitri P.
 Solomatine (2008) Data‐driven approaches for estimating uncertainty in
 rainfall‐runoff modelling, International Journal of River Basin
@@ -254,7 +275,7 @@ How can we tell how this did at modeling flow in watershed 3?
 ```{r}
 ModelOutput <- HBV(params, P, Temp, PET, routing)
 
-head(ModelOutput)
+print(head(ModelOutput))
 ```
 
 ## Import observed streamflow data
@@ -377,7 +398,7 @@ do? Does this make sense with the timeseries we looked at above?
 NSE <- 1 - ((sum((OutputTrim$q - OutputTrim$WS_3) ^ 2)) / 
                  sum((OutputTrim$WS_3 - mean(OutputTrim$WS_3)) ^ 2))
 
-NSE
+print(NSE)
 
 ```
 
@@ -420,7 +441,7 @@ CompareSnow <- drop_na(OutputTrimSno, STA2)
 NSEsno <- 1 - ((sum((CompareSnow$SWE - CompareSnow$STA2) ^ 2)) / 
                  sum((CompareSnow$STA2 - mean(CompareSnow$STA2)) ^ 2))
 
-NSEsno
+print(NSEsno)
 ```
 
 ## Calibrate HBV manually
