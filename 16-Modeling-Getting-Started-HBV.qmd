@@ -46,6 +46,7 @@ library(tidyverse)
 library(lubridate)
 library(patchwork)
 library(plotly)
+library(webshot2)
 
 theme_set(theme_classic())
 ```
@@ -355,10 +356,23 @@ can explore in the menu in the upper right.
 You can create a similar graph by saving the one above and passing it to ggplotly()!
 
 ```{r}
-OutputTrim %>% plot_ly(x = ~DATE) %>% 
+# define where to save static and interactive maps
+discharge_plotly_plot_interactive_fp <- "./images/discharge_plotly_plot.html"
+discharge_plotly_plot_static_fp <- "./images/discharge_plotly_plot.png"
+
+discharge_plotly_plot <- OutputTrim %>% plot_ly(x = ~DATE) %>% 
         add_trace(y = ~q, name = 'Modeled',  type = 'scatter', mode = 'lines') %>% 
         add_trace(y = ~WS_3, name = 'Measured',  type = 'scatter', mode = 'lines')
+
+discharge_plotly_plot |> htmlwidgets::saveWidget(discharge_plotly_plot_interactive_fp)
+webshot(url = discharge_plotly_plot_interactive_fp,file = discharge_plotly_plot_static_fp,cliprect = "viewport")
 ```
+
+::: {#fig-discharge-plotly-plot .captioned-figure}
+<img src="./images/discharge_plotly_plot.png" alt="Discharge plot" width="1000">
+
+Screenshot of discharge graph made with Plotly. View the **[interactive map here](./images/discharge_plotly_plot.html)**. 
+:::
 
 ## Measure how well the model fits with NSE
 
@@ -429,10 +443,29 @@ snow <- read_csv("HBV/sno2009-2012.csv") %>%
 #Join measured snow to model output
 OutputTrimSno <- left_join(OutputTrim, snow, by = "DATE")
 
+```
+
+```{r}
+# define where to save static and interactive maps
+snow_model_plot_interactive_fp <- "./images/snow_model_plot.html"
+snow_model_plot_static_fp <- "./images/snow_model_plot.png"
+
 #Plot modeled and measured snow
-OutputTrimSno %>% plot_ly(x = ~DATE) %>% 
+snow_model_plot <- OutputTrimSno %>% plot_ly(x = ~DATE) %>% 
         add_trace(y = ~SWE, name = 'Modeled', type = 'scatter', mode = 'lines') %>% 
         add_trace(y = ~STA2, name = 'Measured', type = 'scatter', mode = 'markers')
+
+snow_model_plot |> htmlwidgets::saveWidget(snow_model_plot_interactive_fp)
+webshot(url = snow_model_plot_interactive_fp,file = snow_model_plot_static_fp,cliprect = "viewport")
+```
+
+::: {#fig-snow-model-plot .captioned-figure}
+<img src="./images/snow_model_plot.png" alt="Model plot" width="1000">
+
+Screenshot of modeled and measured snow data. View the **[interactive map here](./images/snow_model_plot.html)**. 
+:::
+
+```{r}
 
 #Drop rows where there isn't a measured snow amount
 CompareSnow <- drop_na(OutputTrimSno, STA2)
@@ -456,6 +489,10 @@ Take note of how the discharge changes when you change certain
 parameters. Let's see who can get the highest NSE!
 
 ```{r}
+# define where to save static and interactive maps
+snow_model_plot_nse_interactive_fp <- "./images/snow_model_plot_nse.html"
+snow_model_plot_nse_static_fp <- "./images/snow_model_plot_nse.png"
+
 #when this term = 1, then triangular routing is invoked, or for no routing, routing = 0
 #if routing = 0 then MAXBAS doesn't do anything
 routing <- 0      
@@ -489,8 +526,18 @@ NSE <- 1 - ((sum((OutTrim$q - OutTrim$WS_3) ^ 2)) /
                  sum((OutTrim$WS_3 - mean(OutTrim$WS_3)) ^ 2))
 
 #Create plot with NSE in title
-OutTrim %>% plot_ly(x = ~DATE) %>% 
+snow_model_plot_nse <- OutTrim %>% plot_ly(x = ~DATE) %>% 
         add_trace(y = ~q, name = 'Modeled',  type = 'scatter', mode = 'lines') %>% 
         add_trace(y = ~WS_3, name = 'Measured', type = 'scatter', mode = 'lines') %>% 
         layout(title=paste("NSE: ", round(NSE,2)))
+
+snow_model_plot_nse  |> htmlwidgets::saveWidget(snow_model_plot_nse_interactive_fp)
+webshot(url = snow_model_plot_nse_interactive_fp,file = snow_model_plot_nse_static_fp,cliprect = "viewport")
 ```
+
+::: {#fig-model-plot .captioned-figure}
+<img src="./images/snow_model_plot_nse.png" alt="Snow model and NSE plot" width="1000">
+
+Screenshot of modeled and measured snow data and NSE. View the **[interactive map here](./images/snow_model_plot_nse.html)**. 
+:::
+
