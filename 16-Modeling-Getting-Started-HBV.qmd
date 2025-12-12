@@ -1,11 +1,9 @@
 ---
 title: "Chapter 16: Modeling Intro"
 date: today
-github: https://github.com/VT-Hydroinformatics/16-Intro-Modeling-HBV
 author:
   - name: JP Gannon
     orcid: 0000-0002-4595-3214
-    github: jpgannon
     url: https://jpgannon.github.io/
     affiliation: 
       - name: Virginia Tech
@@ -14,9 +12,10 @@ format:
   html: 
     self-contained: true
   ipynb:
-      nb-frontmatter: true
-jupyter: 
-  kernel: ir
+    nb-frontmatter: true
+    jupyter:
+      kernel: ir
+      ipynb-shell-interactivity: all
 execute: 
   enabled: true
 ---
@@ -46,7 +45,6 @@ library(tidyverse)
 library(lubridate)
 library(patchwork)
 library(plotly)
-library(webshot2)
 
 theme_set(theme_classic())
 ```
@@ -76,12 +74,7 @@ HBV is a lumped conceptual model. We will use the diagram below and the
 HBV.R code to discuss how the model works and get an idea of what the
 parameters do.
 
-::: {#fig-hbv-model .captioned-figure}
-<img src="./images/HBV-schem-Shrestha-Solomantine-2008.png" alt="HBV Model" width="1000">
-
-HBV Model
-:::
-
+![HBV Model](images/HBV-schem-Shrestha-Solomantine-2008.png "HBV Model")
 This schematic was reproduced from: Durga Lal Shrestha & Dimitri P.
 Solomatine (2008) Data‐driven approaches for estimating uncertainty in
 rainfall‐runoff modelling, International Journal of River Basin
@@ -276,7 +269,7 @@ How can we tell how this did at modeling flow in watershed 3?
 ```{r}
 ModelOutput <- HBV(params, P, Temp, PET, routing)
 
-print(head(ModelOutput))
+head(ModelOutput)
 ```
 
 ## Import observed streamflow data
@@ -356,23 +349,10 @@ can explore in the menu in the upper right.
 You can create a similar graph by saving the one above and passing it to ggplotly()!
 
 ```{r}
-# define where to save static and interactive maps
-discharge_plotly_plot_interactive_fp <- "./images/discharge_plotly_plot.html"
-discharge_plotly_plot_static_fp <- "./images/discharge_plotly_plot.png"
-
-discharge_plotly_plot <- OutputTrim %>% plot_ly(x = ~DATE) %>% 
+OutputTrim %>% plot_ly(x = ~DATE) %>% 
         add_trace(y = ~q, name = 'Modeled',  type = 'scatter', mode = 'lines') %>% 
         add_trace(y = ~WS_3, name = 'Measured',  type = 'scatter', mode = 'lines')
-
-discharge_plotly_plot |> htmlwidgets::saveWidget(discharge_plotly_plot_interactive_fp)
-webshot(url = discharge_plotly_plot_interactive_fp,file = discharge_plotly_plot_static_fp,cliprect = "viewport")
 ```
-
-::: {#fig-discharge-plotly-plot .captioned-figure}
-<img src="./images/discharge_plotly_plot.png" alt="Discharge plot" width="1000">
-
-Screenshot of discharge graph made with Plotly. View the **[interactive map here](./images/discharge_plotly_plot.html)**. 
-:::
 
 ## Measure how well the model fits with NSE
 
@@ -412,7 +392,7 @@ do? Does this make sense with the timeseries we looked at above?
 NSE <- 1 - ((sum((OutputTrim$q - OutputTrim$WS_3) ^ 2)) / 
                  sum((OutputTrim$WS_3 - mean(OutputTrim$WS_3)) ^ 2))
 
-print(NSE)
+NSE
 
 ```
 
@@ -443,29 +423,10 @@ snow <- read_csv("HBV/sno2009-2012.csv") %>%
 #Join measured snow to model output
 OutputTrimSno <- left_join(OutputTrim, snow, by = "DATE")
 
-```
-
-```{r}
-# define where to save static and interactive maps
-snow_model_plot_interactive_fp <- "./images/snow_model_plot.html"
-snow_model_plot_static_fp <- "./images/snow_model_plot.png"
-
 #Plot modeled and measured snow
-snow_model_plot <- OutputTrimSno %>% plot_ly(x = ~DATE) %>% 
+OutputTrimSno %>% plot_ly(x = ~DATE) %>% 
         add_trace(y = ~SWE, name = 'Modeled', type = 'scatter', mode = 'lines') %>% 
         add_trace(y = ~STA2, name = 'Measured', type = 'scatter', mode = 'markers')
-
-snow_model_plot |> htmlwidgets::saveWidget(snow_model_plot_interactive_fp)
-webshot(url = snow_model_plot_interactive_fp,file = snow_model_plot_static_fp,cliprect = "viewport")
-```
-
-::: {#fig-snow-model-plot .captioned-figure}
-<img src="./images/snow_model_plot.png" alt="Model plot" width="1000">
-
-Screenshot of modeled and measured snow data. View the **[interactive map here](./images/snow_model_plot.html)**. 
-:::
-
-```{r}
 
 #Drop rows where there isn't a measured snow amount
 CompareSnow <- drop_na(OutputTrimSno, STA2)
@@ -474,7 +435,7 @@ CompareSnow <- drop_na(OutputTrimSno, STA2)
 NSEsno <- 1 - ((sum((CompareSnow$SWE - CompareSnow$STA2) ^ 2)) / 
                  sum((CompareSnow$STA2 - mean(CompareSnow$STA2)) ^ 2))
 
-print(NSEsno)
+NSEsno
 ```
 
 ## Calibrate HBV manually
@@ -489,10 +450,6 @@ Take note of how the discharge changes when you change certain
 parameters. Let's see who can get the highest NSE!
 
 ```{r}
-# define where to save static and interactive maps
-snow_model_plot_nse_interactive_fp <- "./images/snow_model_plot_nse.html"
-snow_model_plot_nse_static_fp <- "./images/snow_model_plot_nse.png"
-
 #when this term = 1, then triangular routing is invoked, or for no routing, routing = 0
 #if routing = 0 then MAXBAS doesn't do anything
 routing <- 0      
@@ -526,18 +483,9 @@ NSE <- 1 - ((sum((OutTrim$q - OutTrim$WS_3) ^ 2)) /
                  sum((OutTrim$WS_3 - mean(OutTrim$WS_3)) ^ 2))
 
 #Create plot with NSE in title
-snow_model_plot_nse <- OutTrim %>% plot_ly(x = ~DATE) %>% 
+OutTrim %>% plot_ly(x = ~DATE) %>% 
         add_trace(y = ~q, name = 'Modeled',  type = 'scatter', mode = 'lines') %>% 
         add_trace(y = ~WS_3, name = 'Measured', type = 'scatter', mode = 'lines') %>% 
         layout(title=paste("NSE: ", round(NSE,2)))
-
-snow_model_plot_nse  |> htmlwidgets::saveWidget(snow_model_plot_nse_interactive_fp)
-webshot(url = snow_model_plot_nse_interactive_fp,file = snow_model_plot_nse_static_fp,cliprect = "viewport")
 ```
-
-::: {#fig-model-plot .captioned-figure}
-<img src="./images/snow_model_plot_nse.png" alt="Snow model and NSE plot" width="1000">
-
-Screenshot of modeled and measured snow data and NSE. View the **[interactive map here](./images/snow_model_plot_nse.html)**. 
-:::
 
