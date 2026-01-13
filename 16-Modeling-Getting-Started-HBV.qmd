@@ -74,7 +74,9 @@ HBV is a lumped conceptual model. We will use the diagram below and the
 HBV.R code to discuss how the model works and get an idea of what the
 parameters do.
 
-![HBV Model](images/HBV-schem-Shrestha-Solomantine-2008.png "HBV Model")
+![HBV Model](images/HBV-schem-Shrestha-Solomantine-2008.png "HBV Model")\
+_HBV Model_
+
 This schematic was reproduced from: Durga Lal Shrestha & Dimitri P.
 Solomatine (2008) Data‐driven approaches for estimating uncertainty in
 rainfall‐runoff modelling, International Journal of River Basin
@@ -353,6 +355,7 @@ OutputTrim %>% plot_ly(x = ~DATE) %>%
         add_trace(y = ~q, name = 'Modeled',  type = 'scatter', mode = 'lines') %>% 
         add_trace(y = ~WS_3, name = 'Measured',  type = 'scatter', mode = 'lines')
 ```
+**[View interactive plot here](images/discharge_plotly_plot.html)**
 
 ## Measure how well the model fits with NSE
 
@@ -437,6 +440,7 @@ NSEsno <- 1 - ((sum((CompareSnow$SWE - CompareSnow$STA2) ^ 2)) /
 
 NSEsno
 ```
+**[View interactive plot here](images/snow_model_plot.html)**
 
 ## Calibrate HBV manually
 
@@ -488,4 +492,4 @@ OutTrim %>% plot_ly(x = ~DATE) %>%
         add_trace(y = ~WS_3, name = 'Measured', type = 'scatter', mode = 'lines') %>% 
         layout(title=paste("NSE: ", round(NSE,2)))
 ```
-
+**[View interactive plot here](images/snow_model_plot_nse.html)**
