@@ -74,7 +74,8 @@ HBV is a lumped conceptual model. We will use the diagram below and the
 HBV.R code to discuss how the model works and get an idea of what the
 parameters do.
 
-![HBV Model](images/HBV-schem-Shrestha-Solomantine-2008.png "HBV Model")\
+![](images/HBV-schem-Shrestha-Solomantine-2008.png "HBV Model")
+
 _HBV Model_
 
 This schematic was reproduced from: Durga Lal Shrestha & Dimitri P.
