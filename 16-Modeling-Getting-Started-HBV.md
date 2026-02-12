@@ -1,13 +1,8 @@
----
-title: "Chapter 16: Modeling Intro"
-date: today
-author: JP Gannon
-format: gfm
-execute:
-  enabled: true
----
+# Chapter 16: Modeling Intro
+JP Gannon
+2026-02-12
 
-# Intro to Modeling - Getting Started with HBV {#modelingintro}
+# Intro to Modeling - Getting Started with HBV
 
 ## Introduction
 
@@ -22,12 +17,11 @@ in general, using the following reading as a guide:
 
 *Goals for this activity:*
 
--   Become familiar with the process of running a simple hydrologic
-    model
--   Try parameterizing the model manually
--   Introduction to methods of assessing model success
+- Become familiar with the process of running a simple hydrologic model
+- Try parameterizing the model manually
+- Introduction to methods of assessing model success
 
-```{r, message=FALSE, warning=FALSE}
+``` r
 library(tidyverse)
 library(lubridate)
 library(patchwork)
@@ -44,7 +38,7 @@ We will open that and look at the code a bit to discuss how HBV works.
 The code in HBV.R creates a function that runs the HBV model. We can run
 that code by using the source() function in. When we give the location
 of the HBV.R file to source(), it runs the code and creates the HBV
-function. Run the line of code below, then type HBV( and you'll see the
+function. Run the line of code below, then type HBV( and you’ll see the
 input parameters pop up just like any other function.
 
 From this we see that HBV takes as input pars, P, Temp, PET, and
@@ -63,14 +57,14 @@ parameters do.
 
 ![](images/HBV-schem-Shrestha-Solomantine-2008.png "HBV Model")
 
-_HBV Model_
+*HBV Model*
 
 This schematic was reproduced from: Durga Lal Shrestha & Dimitri P.
 Solomatine (2008) Data‐driven approaches for estimating uncertainty in
 rainfall‐runoff modelling, International Journal of River Basin
 Management, 6:2, 109-122, DOI: 10.1080/15715124.2008.9635341
 
-```{r}
+``` r
 source('HBV/HBV.R')
 ```
 
@@ -80,7 +74,7 @@ Our objective today is basically to get the model running with data from
 watershed 3 at the Hubbard Brook experimental forest in NH, USA.
 
 Watershed 3 is a hydrologic reference watershed at HBEF. This means it
-hasn't been experimentally manipulated, but discharge, temperature, and
+hasn’t been experimentally manipulated, but discharge, temperature, and
 precipitation have been recorded there for a long time. This makes it a
 good candidate for some modeling! You can see more about watershed 3
 here: <https://hubbardbrook.org/watersheds/watershed-3>
@@ -96,7 +90,7 @@ Tdm2009-2012.csv.
 
 So how do we get PET?
 
-We calculate it! But before we do that let's bring in the precip and
+We calculate it! But before we do that let’s bring in the precip and
 temp data and format them how the model wants them.
 
 Our model function just wants a vector of values. No dates attached. So
@@ -110,7 +104,7 @@ filter to our start and end date.
 
 Then we will pull out just the data, so it can be passed to the model.
 
-```{r}
+``` r
 start <- mdy("01-01-2009")
 end <- mdy("12-31-2012")
 
@@ -119,7 +113,17 @@ P1 <- read_csv("HBV/Pwd2009-2012.csv") %>%
          select(DATE, WS_3) %>%
          mutate(DATE = ymd(DATE)) %>%
          filter(DATE >= start & DATE <= end)
+```
 
+    Rows: 1461 Columns: 10
+    ── Column specification ────────────────────────────────────────────────────────
+    Delimiter: ","
+    dbl (10): DATE, WS_1, WS_2, WS_3, WS_4, WS_5, WS_6, WS_7, WS_8, WS_9
+
+    ℹ Use `spec()` to retrieve the full column specification for this data.
+    ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
 P <- P1$WS_3
 
 #Temp in deg C
@@ -127,7 +131,17 @@ Temp1 <- read_csv("HBV/Tdm2009-2012.csv")%>%
          select(DATE, STA_1) %>%
          mutate(DATE = ymd(DATE)) %>%
          filter(DATE >= start & DATE <= end)
+```
 
+    Rows: 1461 Columns: 9
+    ── Column specification ────────────────────────────────────────────────────────
+    Delimiter: ","
+    dbl (9): DATE, STA_1, STA_6, STA_14, STA_INT, STA_HQ, STA_23, STA_17, STA_24
+
+    ℹ Use `spec()` to retrieve the full column specification for this data.
+    ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
 Temp <- Temp1$STA_1
 ```
 
@@ -139,9 +153,9 @@ temperature and precipitation record.
 We will use the Hamon method to calculate PET for each day of the
 record.
 
-To do that we will take the latitude of the site in radians...
+To do that we will take the latitude of the site in radians…
 
-```{r}
+``` r
 lat <- 43 + 57/60 #43 degrees and 57 minutes
 latrad <- (lat/360) * 2 * pi #convert to radians
 
@@ -168,64 +182,34 @@ The table below shows the parameters of the HBV model, the minimum and
 maximum for those values, and a description of their function in the
 model.
 
-+----------------------+-----------+---------+------------------------+
-| Object Name          | Min       | Max     | Description            |
-+======================+===========+=========+========================+
-| FC                   | 40        | 400     | Max soil moisture      |
-|                      |           |         | storage, field         |
-|                      |           |         | capacity               |
-+----------------------+-----------+---------+------------------------+
-| beta                 | 1         | 6       | Shape coefficient      |
-|                      |           |         | governing fate of      |
-|                      |           |         | water input to soil    |
-|                      |           |         | moisture storage       |
-+----------------------+-----------+---------+------------------------+
-| LP                   | .3        | 1       | Threshold for          |
-|                      |           |         | reduction of           |
-|                      |           |         | evaporation            |
-+----------------------+-----------+---------+------------------------+
-| SFCF                 | 0.4       | 1.2     | Snowfall correction    |
-|                      |           |         | factor                 |
-+----------------------+-----------+---------+------------------------+
-| TT                   | -1.5      | 1.2     | Threshold temperature  |
-+----------------------+-----------+---------+------------------------+
-| CFMAX                | 1         | 8       | Degree-day factor      |
-+----------------------+-----------+---------+------------------------+
-| k0                   | 0.05      | 0.5     | Recession constant     |
-|                      |           |         | (upper storage, near   |
-|                      |           |         | surface)               |
-+----------------------+-----------+---------+------------------------+
-| k1                   | 0.01      | 0.3     | Recession constant     |
-|                      |           |         | (upper storage)        |
-+----------------------+-----------+---------+------------------------+
-| k2                   | 0.001     | 0.15    | Recession constant     |
-|                      |           |         | (lower storage)        |
-+----------------------+-----------+---------+------------------------+
-| UZL                  | 0         | 70      | Threshold for shallow  |
-|                      |           |         | storage                |
-+----------------------+-----------+---------+------------------------+
-| PERC                 | 0         | 4       | Percolation, max flow  |
-|                      |           |         | from upper to lower    |
-|                      |           |         | storage                |
-+----------------------+-----------+---------+------------------------+
-| MAXBAS               | 1         | 3       | base of the triangular |
-|                      |           |         | routing function,      |
-|                      |           |         | days"                  |
-+----------------------+-----------+---------+------------------------+
+| Object Name | Min | Max | Description |
+|----|----|----|----|
+| FC | 40 | 400 | Max soil moisture storage, field capacity |
+| beta | 1 | 6 | Shape coefficient governing fate of water input to soil moisture storage |
+| LP | .3 | 1 | Threshold for reduction of evaporation |
+| SFCF | 0.4 | 1.2 | Snowfall correction factor |
+| TT | -1.5 | 1.2 | Threshold temperature |
+| CFMAX | 1 | 8 | Degree-day factor |
+| k0 | 0.05 | 0.5 | Recession constant (upper storage, near surface) |
+| k1 | 0.01 | 0.3 | Recession constant (upper storage) |
+| k2 | 0.001 | 0.15 | Recession constant (lower storage) |
+| UZL | 0 | 70 | Threshold for shallow storage |
+| PERC | 0 | 4 | Percolation, max flow from upper to lower storage |
+| MAXBAS | 1 | 3 | base of the triangular routing function, days” |
 
 To pass a set of parameters to the model, we just put them into a single
 vector in the order they are in the table above. In the chunk below,
-I've structured this to make it easy to see a description of each
+I’ve structured this to make it easy to see a description of each
 parameter, but you could also just do it in one line without all the
 comments. Just be sure to get the order right!
 
 The code below sets the routing to 0, which is what we want for a small
 catchment.
 
-Then I just set each parameter to it's minimum value. We will use this
+Then I just set each parameter to it’s minimum value. We will use this
 parameter set to run the model and see what happens!
 
-```{r}
+``` r
 #when this term = 1, then triangular routing is invoked, or for no routing, routing = 0
 #if routing = 0 then MAXBAS doesn't do anything
 routing <- 0      
@@ -248,7 +232,7 @@ params <- c(40,    #FCM ax soil moisture storage, field capacity
 
 ## First model run
 
-Let's run the model! Remember the function is HBV(parameters, Precip,
+Let’s run the model! Remember the function is HBV(parameters, Precip,
 Temp, PET, routing)
 
 We will set the output of the model equal to ModelOutput and then have a
@@ -256,11 +240,21 @@ look at what it outputs.
 
 How can we tell how this did at modeling flow in watershed 3?
 
-```{r}
+``` r
 ModelOutput <- HBV(params, P, Temp, PET, routing)
 
 head(ModelOutput)
 ```
+
+    # A tibble: 6 × 12
+          q    qs    qi    qb Storage   SWE   AET    SF    S1    S2  soil     w
+      <dbl> <dbl> <dbl> <dbl>   <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+    1     0     0     0     0       0    0      0  0        0     0     0     0
+    2     0     0     0     0      40  152.     0  0        0     0    40     0
+    3     0     0     0     0      40  152.     0  0        0     0    40     0
+    4     0     0     0     0      40  152.     0  0        0     0    40     0
+    5     0     0     0     0      40  154.     0  1.16     0     0    40     0
+    6     0     0     0     0      40  154.     0  0        0     0    40     0
 
 ## Import observed streamflow data
 
@@ -277,13 +271,23 @@ resolution (daily), there are no NAs, and they are in the same units.
 These are all things to check if you are preparing data from another
 site.
 
-```{r}
+``` r
 #Streamflow mm/d
 Qobs1 <- read_csv("HBV/SWD2009-2012.csv") %>%
          select(DATE, WS_3) %>%
          mutate(DATE = ymd(DATE)) %>%
          filter(DATE >= start & DATE <= end)
+```
 
+    Rows: 1461 Columns: 10
+    ── Column specification ────────────────────────────────────────────────────────
+    Delimiter: ","
+    dbl (10): DATE, WS_1, WS_2, WS_3, WS_4, WS_5, WS_6, WS_7, WS_8, WS_9
+
+    ℹ Use `spec()` to retrieve the full column specification for this data.
+    ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
 Qobs <- Qobs1$WS_3
 
 ModelOutput <- bind_cols(ModelOutput, Qobs1)
@@ -297,13 +301,13 @@ modeled and observed discharge as two lines on a ggplot.
 
 Because the model starts out with its storages at zero, it takes some
 time for it to actually approximate real conditions. For this reason,
-you will typically set aside part of the modelled period as a "warm up"
+you will typically set aside part of the modelled period as a “warm up”
 period. The duration of this period depends on the system, but for our
 purposes, we are doing to drop the first half of the model run and only
 look at the second half: 2011 - 2013. So we will filter the data to just
 look at that time.
 
-How'd we do? Did the model do a good job of capturing runoff dynamics in
+How’d we do? Did the model do a good job of capturing runoff dynamics in
 watershed 3?
 
 Describe what it looks like the model did well and what it did poorly?
@@ -316,7 +320,7 @@ you to create interactive plots. The code chunk after the ggplot creates
 a plotly graph. From here on out we will use plotly to look at our
 modeling results so we can investigate them more thoroughly.
 
-```{r}
+``` r
 OutputTrim <- filter(ModelOutput, DATE >= mdy("01-01-2011"))
 
 ggplot(OutputTrim, aes(x = DATE, y = WS_3, color = "Measured"))+
@@ -324,6 +328,8 @@ ggplot(OutputTrim, aes(x = DATE, y = WS_3, color = "Measured"))+
   geom_line(aes(y = q, color = "Modelled"))+
   ylab("Discharge (mm/d)")
 ```
+
+![](16-Modeling-Getting-Started-HBV_files/figure-commonmark/unnamed-chunk-8-1.png)
 
 ## Compare observed and modelled discharge with interactive graph
 
@@ -336,13 +342,17 @@ and if you hover over one of the lines, it will show you the values in a
 dialogue box. There is a lot of other functionality as well, which you
 can explore in the menu in the upper right.
 
-You can create a similar graph by saving the one above and passing it to ggplotly()!
+You can create a similar graph by saving the one above and passing it to
+ggplotly()!
 
-```{r}
+``` r
 OutputTrim %>% plot_ly(x = ~DATE) %>% 
         add_trace(y = ~q, name = 'Modeled',  type = 'scatter', mode = 'lines') %>% 
         add_trace(y = ~WS_3, name = 'Measured',  type = 'scatter', mode = 'lines')
 ```
+
+![](16-Modeling-Getting-Started-HBV_files/figure-commonmark/unnamed-chunk-9-1.png)
+
 **[View interactive plot here](images/discharge_plotly_plot.html)**
 
 ## Measure how well the model fits with NSE
@@ -358,7 +368,7 @@ Efficiency (NSE).
 
 Basically, the NSE looks at how much better your model run did that if
 you had just used the mean discharge for the data record as your
-"modeled results". It does this by comparing how far off the observed
+“modeled results”. It does this by comparing how far off the observed
 values were from the mean discharge to how far off the modeled values
 were from the observed discharge.
 
@@ -375,17 +385,18 @@ Below, we calculate NSE for the model run above. We will continue to
 exclude the warm up period.
 
 An NSE over 0 means the model did better than the mean discharge at
-predicting discharge. An NSE of 1 would be a perfect model fit. How'd we
+predicting discharge. An NSE of 1 would be a perfect model fit. How’d we
 do? Does this make sense with the timeseries we looked at above?
 
-```{r}
+``` r
 #Calculate NSE
 NSE <- 1 - ((sum((OutputTrim$q - OutputTrim$WS_3) ^ 2)) / 
                  sum((OutputTrim$WS_3 - mean(OutputTrim$WS_3)) ^ 2))
 
 NSE
-
 ```
+
+    [1] 0.2135378
 
 ## Assess model fit with a different measure: Snow
 
@@ -396,7 +407,7 @@ record. Snowmelt is a very important input driving our model so we might
 want to make sure that the model is doing a good job of capturing that
 as well!
 
-Let's pull in snow, calculate NSE between the modeled and measure snow,
+Let’s pull in snow, calculate NSE between the modeled and measure snow,
 and look at a plot of the data.
 
 Snow is not measured daily, so we will plot the measured values as
@@ -404,13 +415,32 @@ points. Likewise, we will have filter our data to only times when we
 have a modeled snow amount AND a recorded snow amount when we calculate
 NSE.
 
-```{r}
+``` r
 #Read and prep snow data
 snow <- read_csv("HBV/sno2009-2012.csv") %>%
          select(DATE, STA2) %>%
          mutate(DATE = ymd(DATE)) %>%
          filter(DATE >= start & DATE <= end)
+```
 
+    New names:
+    Rows: 76 Columns: 25
+    ── Column specification
+    ──────────────────────────────────────────────────────── Delimiter: "," chr
+    (1): DATE dbl (21): STA1, STA2, STA3, STA4, STA5, STA6, STA7, STA8, STA9,
+    STA10, STA11... lgl (3): ...23, ...24, ...25
+    ℹ Use `spec()` to retrieve the full column specification for this data. ℹ
+    Specify the column types or set `show_col_types = FALSE` to quiet this message.
+    • `` -> `...23`
+    • `` -> `...24`
+    • `` -> `...25`
+
+    Warning: There was 1 warning in `mutate()`.
+    ℹ In argument: `DATE = ymd(DATE)`.
+    Caused by warning:
+    !  8 failed to parse.
+
+``` r
 #Join measured snow to model output
 OutputTrimSno <- left_join(OutputTrim, snow, by = "DATE")
 
@@ -418,7 +448,13 @@ OutputTrimSno <- left_join(OutputTrim, snow, by = "DATE")
 OutputTrimSno %>% plot_ly(x = ~DATE) %>% 
         add_trace(y = ~SWE, name = 'Modeled', type = 'scatter', mode = 'lines') %>% 
         add_trace(y = ~STA2, name = 'Measured', type = 'scatter', mode = 'markers')
+```
 
+    Warning: Ignoring 698 observations
+
+![](16-Modeling-Getting-Started-HBV_files/figure-commonmark/unnamed-chunk-11-1.png)
+
+``` r
 #Drop rows where there isn't a measured snow amount
 CompareSnow <- drop_na(OutputTrimSno, STA2)
 
@@ -428,20 +464,23 @@ NSEsno <- 1 - ((sum((CompareSnow$SWE - CompareSnow$STA2) ^ 2)) /
 
 NSEsno
 ```
+
+    [1] 0.1339054
+
 **[View interactive plot here](images/snow_model_plot.html)**
 
 ## Calibrate HBV manually
 
 Woohoo! We can now run our model and assess how well it is working!
 
-Now, let's see how well we can get it to work. The code below runs the
+Now, let’s see how well we can get it to work. The code below runs the
 model, produces a plot, and calculates the NSE based on discharge.
 
 By changing the parameters, see how well you can get the model to fit.
 Take note of how the discharge changes when you change certain
-parameters. Let's see who can get the highest NSE!
+parameters. Let’s see who can get the highest NSE!
 
-```{r}
+``` r
 #when this term = 1, then triangular routing is invoked, or for no routing, routing = 0
 #if routing = 0 then MAXBAS doesn't do anything
 routing <- 0      
@@ -480,4 +519,7 @@ OutTrim %>% plot_ly(x = ~DATE) %>%
         add_trace(y = ~WS_3, name = 'Measured', type = 'scatter', mode = 'lines') %>% 
         layout(title=paste("NSE: ", round(NSE,2)))
 ```
+
+![](16-Modeling-Getting-Started-HBV_files/figure-commonmark/unnamed-chunk-12-1.png)
+
 **[View interactive plot here](images/snow_model_plot_nse.html)**
