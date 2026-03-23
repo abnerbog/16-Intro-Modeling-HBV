@@ -1,6 +1,11 @@
-# Chapter 16: Modeling Intro
-JP Gannon
-2026-02-12
+---
+title: 'Chapter 16: Modeling Intro'
+date: 2026-03-23T00:00:00.000Z
+authors:
+  - id: jpgannon
+github: https://github.com/VT-Hydroinformatics/16-Intro-Modeling-HBV
+---
+
 
 # Intro to Modeling - Getting Started with HBV
 
