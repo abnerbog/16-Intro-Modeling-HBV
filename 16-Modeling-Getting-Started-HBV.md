@@ -3,7 +3,27 @@ title: 'Chapter 16: Modeling Intro'
 date: 2026-03-23T00:00:00.000Z
 authors:
   - id: jpgannon
+    name: JP Gannon
+    email: jpgannon@vt.edu
+    github: jpgannon
+    orcid: 0000-0002-4595-3214
+    corresponding: true
+    url: https://jpgannon.github.io/
+    affiliations:
+      - vt-tech
+affiliations:
+  - id: vt-tech
+    name: Virginia Tech
+    url: https://www.vt.edu/
+subject: Courseware
+doi: https://doi.org/10.4211/hs.15586bbf953841e7abb4a70e5a051412
+venue:
+  title: View Resource on HydroShare
+  url: https://hydroshare.org/resource/15586bbf953841e7abb4a70e5a051412/
 github: https://github.com/VT-Hydroinformatics/16-Intro-Modeling-HBV
+downloads:
+  - file: 16-Modeling-Getting-Started-HBV.md
+  - file: 16-Modeling-Getting-Started-HBV.pdf
 ---
 
 
